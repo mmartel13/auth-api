@@ -73,9 +73,32 @@ exports.loginUser = (req, res) => {
     res.send({
       success: true,
       message: 'Login successful',
-      token: users[0]
+      token: users[0] //should only have one user with the specific username/password so just pulling that user out of the array
     })
   }) 
+  .catch(err => res.status(500).send({
+    success: false,
+    message: err.message,
+    error: err
+  }))
+}
+
+exports.getUsers = (req, res) => { //TODO: protect this route with JWT
+  const db = connectDb()
+  db.collection('users').get()
+  .then(snapshot => {
+    const users = snapshot.docs.map(doc => {
+      let user = doc.data()
+      user.id = doc.id
+      user.password = undefined
+      return user
+    })
+    res.send({
+      success: true,
+      message: 'Users returned',
+      users
+    })
+  })
   .catch(err => res.status(500).send({
     success: false,
     message: err.message,
